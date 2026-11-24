@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi CASILLERO UNITEC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración estricta de la paleta de colores de UNITEC -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'unitec-blue': '#006FBA',
+                        'unitec-orange': '#F68B1F',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<!-- Se cambió el fondo de bg-gray-50 a bg-unitec-blue -->
+<body class="bg-unitec-blue min-h-screen font-sans">
+
+    <!-- Navegación Superior -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-box text-unitec-blue text-2xl mr-2"></i>
+                        <span class="font-bold text-xl text-gray-900">Mi CASILLERO UNITEC</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <!-- Pestaña 1: Mi casillero -->
+                        <button id="tab-client" onclick="switchTab('client')" class="border-unitec-blue text-unitec-blue inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
+                            <i class="fas fa-ticket-alt mr-2"></i> Mi casillero
+                        </button>
+                        <!-- Pestaña 2: Panel Administrador -->
+                        <button id="tab-admin" onclick="switchTab('admin')" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
+                            <i class="fas fa-user-shield mr-2"></i> Panel Administrador
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center" id="logout-container" style="display: none;">
+                    <button onclick="logout()" class="text-sm text-unitec-orange hover:text-orange-700 font-medium">
+                        <i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navegación Móvil -->
+        <div class="sm:hidden flex border-t border-gray-200 bg-white">
+            <button id="tab-client-mobile" onclick="switchTab('client')" class="flex-1 text-center py-3 border-b-2 border-unitec-blue text-unitec-blue text-sm font-medium">
+                <i class="fas fa-ticket-alt block mb-1"></i> Mi casillero
+            </button>
+            <button id="tab-admin-mobile" onclick="switchTab('admin')" class="flex-1 text-center py-3 border-b-2 border-transparent text-gray-500 text-sm font-medium">
+                <i class="fas fa-user-shield block mb-1"></i> Admin
+            </button>
+        </div>
+    </div>
+
+    <!-- VISTA 1: MI CASILLERO -->
+    <div id="view-client" class="max-w-md mx-auto mt-10 px-4">
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Consulta tu casillero</h2>
+            <p class="text-gray-500 mb-6 text-sm">Ingresa el número que te asignaron para ver tu información escolar y el tiempo restante.</p>
+            
+            <div class="flex justify-center mb-6">
+                <input type="number" id="client-locker-input" placeholder="#" min="1" max="40" class="w-24 text-center text-3xl p-3 border-2 border-gray-300 rounded-lg focus:ring-unitec-blue focus:border-unitec-blue outline-none">
+            </div>
+            <button onclick="checkClientLocker()" class="w-full bg-unitec-blue text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-800 transition duration-200">
+                Ver estado
+            </button>
+
+            <!-- Tarjeta de Resultado del Cliente -->
+            <div id="client-result" class="mt-8 hidden">
+                <!-- Se llena con JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 2: LOGIN DE ADMINISTRADOR -->
+    <div id="view-login" class="max-w-md mx-auto mt-16 px-4 hidden">
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <div class="text-center mb-6">
+                <i class="fas fa-lock text-unitec-blue text-4xl mb-3"></i>
+                <h2 class="text-2xl font-bold text-gray-800">Acceso Restringido</h2>
+                <p class="text-gray-500 text-sm">Ingresa tus credenciales para administrar.</p>
+            </div>
+            <div id="login-error" class="hidden bg-orange-100 border border-unitec-orange text-unitec-orange px-4 py-3 rounded relative mb-4 text-sm font-bold" role="alert">
+                Usuario o contraseña incorrectos.
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Usuario</label>
+                    <input type="text" id="login-user" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-unitec-blue">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                    <input type="password" id="login-pass" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-unitec-blue">
+                </div>
+                <button onclick="login()" class="w-full bg-unitec-blue text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-800 transition mt-4">
+                    Iniciar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 3: PANEL DE ADMINISTRADOR (Cuadrícula) -->
+    <div id="view-admin" class="max-w-7xl mx-auto px-4 py-8 hidden">
+        <!-- Se encapsuló la cuadrícula en una tarjeta blanca para contrastar con el fondo azul -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Panel de Control</h1>
+                <div class="flex gap-4 text-sm font-medium text-gray-600">
+                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-gray-300 mr-2"></span> Disponible</span>
+                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-unitec-blue mr-2"></span> Ocupado</span>
+                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-unitec-orange mr-2"></span> Expirado</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4" id="lockers-grid">
+                <!-- Los casilleros se generan aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ASIGNAR CASILLERO -->
+    <div id="modal-assign" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 transform transition-all">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-bold text-gray-900" id="assign-title">Asignar Casillero</h3>
+                <button onclick="closeModal('modal-assign')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <p class="text-gray-600 text-xs mb-4" id="assign-desc">Este casillero se asignará por un tiempo estricto de 3 horas.</p>
+            
+            <input type="hidden" id="assign-id">
+            
+            <!-- Datos del Alumno -->
+            <div class="mb-3">
+                <label class="block text-gray-700 text-sm font-bold mb-1">Nombre</label>
+                <input type="text" id="assign-nombre" placeholder="Nombre completo" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-unitec-blue text-sm">
+            </div>
+            <div class="flex gap-3 mb-5">
+                <div class="flex-1">
+                    <label class="block text-gray-700 text-sm font-bold mb-1">Número de Cuenta</label>
+                    <input type="text" id="assign-cuenta" placeholder="Ej. 12345678" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-unitec-blue text-sm">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-gray-700 text-sm font-bold mb-1">Carrera</label>
+                    <input type="text" id="assign-carrera" placeholder="Ej. Diseño" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-unitec-blue text-sm">
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-assign')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-200">Cancelar</button>
+                <button onclick="confirmAssign()" class="flex-1 bg-unitec-blue text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-800">Asignar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LIBERAR CASILLERO -->
+    <div id="modal-free" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Liberar Casillero</h3>
+                <button onclick="closeModal('modal-free')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <p class="text-gray-600 text-sm mb-6">¿Estás seguro de que deseas liberar el casillero <span id="free-id-text" class="font-bold"></span>? Se borrarán los datos del alumno y el tiempo restante.</p>
+            <input type="hidden" id="free-id">
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-free')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-200">Cancelar</button>
+                <button onclick="confirmFree()" class="flex-1 bg-unitec-orange text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600">Liberar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS LOCAL (SIMULADA) ---
+        const TOTAL_LOCKERS = 40;
+        let lockers = [];
+        let isLoggedIn = false;
+        
+        // Usuarios válidos
+        const users = {
+            'admin': 'admin123',
+            'jorge': 'pass123',
+            'maria': 'pass123',
+            'luis': 'pass123',
+            'ana': 'pass123'
+        };
+
+        // Inicializar datos de los 40 casilleros
+        for (let i = 1; i <= TOTAL_LOCKERS; i++) {
+            lockers.push({
+                id: i,
+                status: 'available', 
+                endTime: null,
+                isCoach: i <= 5, 
+                nombre: null,
+                cuenta: null,
+                carrera: null
+            });
+        }
+
+        // --- NAVEGACIÓN Y TABS ---
+        function switchTab(tab) {
+            document.getElementById('tab-client').className = tab === 'client' 
+                ? 'border-unitec-blue text-unitec-blue inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium';
+            
+            document.getElementById('tab-admin').className = tab === 'admin' 
+                ? 'border-unitec-blue text-unitec-blue inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium';
+
+            document.getElementById('tab-client-mobile').className = tab === 'client'
+                ? 'flex-1 text-center py-3 border-b-2 border-unitec-blue text-unitec-blue text-sm font-medium'
+                : 'flex-1 text-center py-3 border-b-2 border-transparent text-gray-500 text-sm font-medium';
+            
+            document.getElementById('tab-admin-mobile').className = tab === 'admin'
+                ? 'flex-1 text-center py-3 border-b-2 border-unitec-blue text-unitec-blue text-sm font-medium'
+                : 'flex-1 text-center py-3 border-b-2 border-transparent text-gray-500 text-sm font-medium';
+
+            document.getElementById('view-client').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+
+            if (tab === 'client') {
+                document.getElementById('view-client').classList.remove('hidden');
+                document.getElementById('client-locker-input').value = '';
+                document.getElementById('client-result').classList.add('hidden');
+            } else if (tab === 'admin') {
+                if (isLoggedIn) {
+                    document.getElementById('view-admin').classList.remove('hidden');
+                    renderGrid();
+                } else {
+                    document.getElementById('view-login').classList.remove('hidden');
+                }
+            }
+        }
+
+        // --- SISTEMA DE LOGIN ---
+        function login() {
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+            
+            if (users[user] && users[user] === pass) {
+                isLoggedIn = true;
+                document.getElementById('login-error').classList.add('hidden');
+                document.getElementById('login-user').value = '';
+                document.getElementById('login-pass').value = '';
+                document.getElementById('logout-container').style.display = 'flex';
+                switchTab('admin');
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            isLoggedIn = false;
+            document.getElementById('logout-container').style.display = 'none';
+            switchTab('client');
+        }
+
+        // --- LÓGICA DEL PANEL DE ADMINISTRADOR ---
+        function renderGrid() {
+            if(!isLoggedIn || document.getElementById('view-admin').classList.contains('hidden')) return;
+            
+            const grid = document.getElementById('lockers-grid');
+            grid.innerHTML = '';
+
+            lockers.forEach(locker => {
+                const isCoach = locker.isCoach;
+                const coachBadge = isCoach ? `<div class="absolute -top-2 -right-2 bg-unitec-orange text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm z-10">COACH</div>` : '';
+                
+                let btnClass = '';
+                let content = '';
+
+                if (locker.status === 'available') {
+                    btnClass = 'bg-white border-2 border-gray-300 hover:border-unitec-blue hover:shadow-md';
+                    content = `
+                        <div class="text-gray-500 font-bold text-3xl mb-1">${locker.id}</div>
+                        <div class="text-gray-400 text-sm uppercase tracking-wide font-semibold">Disponible</div>
+                    `;
+                } else if (locker.status === 'occupied') {
+                    btnClass = 'bg-unitec-blue/10 border-2 border-unitec-blue shadow-md';
+                    const timeText = isCoach ? '<i class="fas fa-infinity text-xl"></i>' : formatTime(locker.endTime);
+                    content = `
+                        <div class="text-unitec-blue font-bold text-3xl mb-1">${locker.id}</div>
+                        <div class="text-unitec-blue font-mono font-bold text-lg timer-display">${timeText}</div>
+                        <div class="mt-2 text-center w-full px-2">
+                            <div class="text-gray-800 text-xs font-bold truncate">${locker.nombre}</div>
+                            <div class="text-gray-600 text-[10px] truncate">${locker.cuenta} | ${locker.carrera}</div>
+                        </div>
+                    `;
+                } else if (locker.status === 'expired') {
+                    btnClass = 'bg-unitec-orange/10 border-2 border-unitec-orange shadow-md animate-pulse';
+                    content = `
+                        <div class="text-unitec-orange font-bold text-3xl mb-1">${locker.id}</div>
+                        <div class="text-unitec-orange font-bold text-sm uppercase">¡Expirado!</div>
+                        <div class="mt-2 text-center w-full px-2">
+                            <div class="text-gray-800 text-xs font-bold truncate">${locker.nombre}</div>
+                            <div class="text-gray-600 text-[10px] truncate">${locker.cuenta} | ${locker.carrera}</div>
+                        </div>
+                    `;
+                }
+
+                grid.innerHTML += `
+                    <button onclick="handleLockerClick(${locker.id})" class="relative min-h-[9rem] py-3 px-1 rounded-xl flex flex-col items-center justify-center transition-all duration-200 transform hover:-translate-y-1 ${btnClass}">
+                        ${coachBadge}
+                        ${content}
+                    </button>
+                `;
+            });
+        }
+
+        function handleLockerClick(id) {
+            const locker = lockers.find(l => l.id === id);
+            if (locker.status === 'available') {
+                document.getElementById('assign-nombre').value = '';
+                document.getElementById('assign-cuenta').value = '';
+                document.getElementById('assign-carrera').value = '';
+
+                document.getElementById('assign-id').value = id;
+                document.getElementById('assign-title').innerText = `Asignar Casillero ${id}`;
+                document.getElementById('assign-desc').innerText = locker.isCoach 
+                    ? "Casillero para COACH. Tiempo INFINITO."
+                    : "Casillero alumno regular. Tiempo de 3 HORAS.";
+                document.getElementById('modal-assign').classList.remove('hidden');
+            } else {
+                document.getElementById('free-id').value = id;
+                document.getElementById('free-id-text').innerText = `#${id}`;
+                document.getElementById('modal-free').classList.remove('hidden');
+            }
+        }
+
+        function confirmAssign() {
+            const id = parseInt(document.getElementById('assign-id').value);
+            const locker = lockers.find(l => l.id === id);
+            
+            const nombre = document.getElementById('assign-nombre').value.trim();
+            const cuenta = document.getElementById('assign-cuenta').value.trim();
+            const carrera = document.getElementById('assign-carrera').value.trim();
+
+            if (!nombre || !cuenta || !carrera) {
+                alert("Por favor completa todos los datos del alumno (Nombre, Cuenta y Carrera).");
+                return;
+            }
+            
+            locker.status = 'occupied';
+            locker.nombre = nombre;
+            locker.cuenta = cuenta;
+            locker.carrera = carrera;
+
+            if (locker.isCoach) {
+                locker.endTime = 'infinity';
+            } else {
+                locker.endTime = Date.now() + (3 * 60 * 60 * 1000); 
+            }
+            
+            closeModal('modal-assign');
+            renderGrid();
+            updateClientViewIfActive(); 
+        }
+
+        function confirmFree() {
+            const id = parseInt(document.getElementById('free-id').value);
+            const locker = lockers.find(l => l.id === id);
+            
+            locker.status = 'available';
+            locker.endTime = null;
+            locker.nombre = null;
+            locker.cuenta = null;
+            locker.carrera = null;
+            
+            closeModal('modal-free');
+            renderGrid();
+            updateClientViewIfActive();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function formatTime(endTimeMs) {
+            if (endTimeMs === 'infinity') return 'Infinito';
+            const diff = endTimeMs - Date.now();
+            if (diff <= 0) return '00:00:00';
+            
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const mins = Math.floor((diff / 1000 / 60) % 60);
+            const secs = Math.floor((diff / 1000) % 60);
+            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // --- LÓGICA DE MI CASILLERO (CLIENTE) ---
+        let currentClientLocker = null;
+
+        function checkClientLocker() {
+            const input = document.getElementById('client-locker-input').value;
+            const id = parseInt(input);
+            const resultDiv = document.getElementById('client-result');
+
+            if (isNaN(id) || id < 1 || id > TOTAL_LOCKERS) {
+                alert("Por favor ingresa un número de casillero válido (1-40).");
+                return;
+            }
+
+            currentClientLocker = id;
+            updateClientViewIfActive();
+            resultDiv.classList.remove('hidden');
+        }
+
+        function updateClientViewIfActive() {
+            if (!currentClientLocker || document.getElementById('view-client').classList.contains('hidden')) return;
+
+            const locker = lockers.find(l => l.id === currentClientLocker);
+            const resultDiv = document.getElementById('client-result');
+            
+            const coachTag = locker.isCoach ? `<span class="bg-unitec-orange text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Casillero Coach</span>` : '';
+
+            if (locker.status === 'available') {
+                resultDiv.innerHTML = `
+                    <div class="bg-white border-2 border-gray-300 rounded-xl p-8">
+                        ${coachTag}
+                        <h3 class="text-gray-500 text-xl font-medium">Casillero</h3>
+                        <div class="text-6xl font-black text-gray-400 my-2">${locker.id}</div>
+                        <div class="text-gray-500 font-bold mt-4"><i class="fas fa-info-circle"></i> Actualmente sin asignar</div>
+                    </div>`;
+            } else if (locker.status === 'occupied') {
+                const timeStr = locker.isCoach ? '<i class="fas fa-infinity text-4xl"></i>' : formatTime(locker.endTime);
+                resultDiv.innerHTML = `
+                    <div class="bg-unitec-blue/10 border-2 border-unitec-blue rounded-xl p-6 shadow-lg transform scale-105 transition-transform">
+                        ${coachTag}
+                        <h3 class="text-unitec-blue text-xl font-medium">Tu Casillero</h3>
+                        <div class="text-7xl font-black text-unitec-blue my-1">${locker.id}</div>
+                        
+                        <!-- Datos del Alumno -->
+                        <div class="bg-white/80 rounded-lg p-3 my-4 border border-unitec-blue/30">
+                            <div class="text-gray-900 font-bold text-lg">${locker.nombre}</div>
+                            <div class="text-gray-700 text-sm font-medium">Cuenta: ${locker.cuenta}</div>
+                            <div class="text-gray-700 text-sm font-medium">${locker.carrera}</div>
+                        </div>
+
+                        <p class="text-unitec-blue text-xs uppercase tracking-wide font-bold mt-2 mb-1">Tiempo Restante</p>
+                        <div class="text-4xl font-mono font-bold text-unitec-blue">${timeStr}</div>
+                    </div>`;
+            } else if (locker.status === 'expired') {
+                resultDiv.innerHTML = `
+                    <div class="bg-unitec-orange/10 border-2 border-unitec-orange rounded-xl p-6 shadow-lg animate-pulse">
+                        ${coachTag}
+                        <h3 class="text-unitec-orange text-xl font-medium">Tu Casillero</h3>
+                        <div class="text-7xl font-black text-unitec-orange my-1">${locker.id}</div>
+                        
+                        <!-- Datos del Alumno -->
+                        <div class="bg-white/80 rounded-lg p-3 my-4 border border-unitec-orange/30">
+                            <div class="text-gray-900 font-bold text-lg">${locker.nombre}</div>
+                            <div class="text-gray-700 text-sm font-medium">Cuenta: ${locker.cuenta}</div>
+                            <div class="text-gray-700 text-sm font-medium">${locker.carrera}</div>
+                        </div>
+
+                        <div class="text-unitec-orange font-bold text-xl uppercase mt-4"><i class="fas fa-exclamation-triangle"></i> ¡Tiempo Expirado!</div>
+                        <p class="text-unitec-orange text-sm mt-1 font-medium">Por favor desocupa el casillero.</p>
+                    </div>`;
+            }
+        }
+
+        // --- GLOBAL LOOP (El Motor del Tiempo) ---
+        setInterval(() => {
+            let needsRender = false;
+
+            lockers.forEach(locker => {
+                if (locker.status === 'occupied' && !locker.isCoach) {
+                    const diff = locker.endTime - Date.now();
+                    if (diff <= 0) {
+                        locker.status = 'expired';
+                        needsRender = true; 
+                    }
+                    needsRender = true; 
+                }
+            });
+
+            if (needsRender) {
+                renderGrid(); 
+                updateClientViewIfActive(); 
+            }
+        }, 1000);
+
+        // Inicializar la app
+        switchTab('client');
+
+    </script>
+</body>
+</html>
