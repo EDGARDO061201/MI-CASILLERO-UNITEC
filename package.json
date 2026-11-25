@@ -1,0 +1,23 @@
+{
+  "name": "mi-casillero-unitec",
+  "version": "1.0.0",
+  "description": "Sistema de gestión de casilleros UNITEC con Vercel Web Analytics",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EDGARDO061201/MI-CASILLERO-UNITEC.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EDGARDO061201/MI-CASILLERO-UNITEC/issues"
+  },
+  "homepage": "https://github.com/EDGARDO061201/MI-CASILLERO-UNITEC#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
